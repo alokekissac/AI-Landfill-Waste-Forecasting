@@ -8,6 +8,8 @@
 
 📄 **[Read the full research report (PDF)](docs/MSc_Report_Landfill_Waste_Forecasting.pdf)**
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Falokekissac%2FAI-Landfill-Waste-Forecasting&project-name=landfill-waste-forecasting)
+
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-LSTM-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
@@ -302,7 +304,7 @@ Input validation returns `400` with a JSON error for an unknown state, a non-num
 ├── docs/figures · docs/screenshots
 ├── requirements.txt                # Serving dependencies
 ├── requirements-train.txt          # + torch, xgboost, plotting for the notebook
-└── vercel.json
+└── .vercelignore                   # keeps dataset/notebooks/docs out of the Vercel bundle
 ```
 
 ---
@@ -328,7 +330,13 @@ jupyter notebook notebooks/landfill_waste_forecasting.ipynb
 
 The notebook uses a CUDA GPU when one is available and falls back to the CPU otherwise. Running it with newer library versions reproduces the same ranking, with Linear Regression first, though the numbers differ very slightly (for example, R² 0.984 instead of 0.986).
 
-**Deploy to Vercel:** import the repo on [vercel.com/new](https://vercel.com/new) and click Deploy. `vercel.json` routes all requests to the Flask app, and the dataset, notebooks and docs are excluded from the serverless bundle.
+### ☁️ Deploy to Vercel
+
+Click **Deploy with Vercel** at the top, or import the repo at [vercel.com/new](https://vercel.com/new) and click **Deploy**. No configuration is needed:
+
+- Vercel detects the Flask app in `app.py` and installs `requirements.txt` (no PyTorch needed to serve the model).
+- The app loads the saved model and the cached aggregates in `saved_models/`, so start-up doesn't touch the 27 MB Excel file.
+- `.vercelignore` leaves the dataset, notebooks and docs out of the serverless bundle.
 
 ---
 

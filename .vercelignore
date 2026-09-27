@@ -1,5 +1,6 @@
+# Keep the serverless bundle small: the app only needs app.py, templates/ and saved_models/.
 dataset/
 notebooks/
 docs/
-*.ipynb
-__pycache__
+requirements-train.txt
+**/__pycache__

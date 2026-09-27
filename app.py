@@ -11,8 +11,10 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 app = Flask(__name__)
 
-SAVE_DIR  = 'saved_models'
-DATA_PATH = os.path.join('dataset', 'Landfilled Waste Composition Dataset.xlsx')
+HERE      = os.path.dirname(os.path.abspath(__file__))
+
+SAVE_DIR  = os.path.join(HERE, 'saved_models')
+DATA_PATH = os.path.join(HERE, 'dataset', 'Landfilled Waste Composition Dataset.xlsx')
 AGG_CACHE = os.path.join(SAVE_DIR, 'agg_cache.csv')
 # Set MODEL=lstm to serve a PyTorch LSTM checkpoint instead of the best model
 # chosen in metrics_summary.json (requires torch and saved_models/best_model_lstm.pth).
