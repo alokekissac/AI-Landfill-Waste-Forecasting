@@ -6,6 +6,8 @@
 
 *MSc in Artificial Intelligence, Applied Research Project · Dublin Business School · 2026*
 
+📄 **[Read the full research report (PDF)](docs/MSc_Report_Landfill_Waste_Forecasting.pdf)**
+
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-LSTM-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
@@ -353,6 +355,6 @@ The notebook uses a CUDA GPU when one is available and falls back to the CPU oth
 **Aloke Kunjandi Issac**, AI Engineer & Full-Stack Developer · Dublin, Ireland
 [GitHub](https://github.com/alokekissac) · [LinkedIn](https://www.linkedin.com/in/alokekisssac/)
 
-Applied Research Project for the **MSc in Artificial Intelligence** at **Dublin Business School** (2026), supervised by **Dr. Devesh Jawla**.
+Applied Research Project for the **MSc in Artificial Intelligence** at **Dublin Business School** (2026), supervised by **Dr. Devesh Jawla**. The full report, including the literature review and discussion, is in [`docs/`](docs/MSc_Report_Landfill_Waste_Forecasting.pdf).
 
 <sub>Dataset: US EPA Office of Research and Development, <i>Landfilled Waste Composition Dataset, Version 1</i>, via data.gov.</sub>
