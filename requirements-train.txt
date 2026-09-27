@@ -1,0 +1,8 @@
+# Extra packages needed to re-run the training notebook
+-r requirements.txt
+torch>=2.1
+xgboost>=2.0
+matplotlib>=3.8
+seaborn>=0.13
+plotly>=5.18
+jupyter

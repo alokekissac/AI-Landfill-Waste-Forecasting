@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+.DS_Store
+# LSTM checkpoint is only written if the LSTM wins; not needed to serve the best model
+saved_models/*.pth

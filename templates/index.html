@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WasteSight AI — Landfill Waste Forecasting</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --brand-dark:  #0d2137;
+      --brand-mid:   #1a3a5c;
+      --brand-blue:  #2980b9;
+      --brand-teal:  #1abc9c;
+      --brand-light: #ebf5fb;
+      --text-primary: #1c2b3a;
+      --text-muted:   #6b7a8d;
+      --card-radius:  14px;
+      --card-shadow:  0 4px 24px rgba(13,33,55,.10);
+      --transition:   .22s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f4f8;
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-mid) 100%);
+      padding: .85rem 1.5rem;
+      box-shadow: 0 2px 16px rgba(13,33,55,.35);
+    }
+    .navbar-brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff !important;
+      letter-spacing: -.02em;
+    }
+    .navbar-brand span { color: var(--brand-teal); }
+    .nav-link { color: rgba(255,255,255,.75) !important; font-size: .88rem; }
+    .nav-link:hover { color: #fff !important; }
+    .badge-version {
+      background: rgba(26,188,156,.2);
+      color: var(--brand-teal);
+      border: 1px solid rgba(26,188,156,.35);
+      font-size: .7rem;
+      padding: .2rem .55rem;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: .03em;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--brand-dark) 0%, #1a4a6e 60%, #1e6b8a 100%);
+      padding: 3.5rem 0 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      background: rgba(26,188,156,.15);
+      border: 1px solid rgba(26,188,156,.3);
+      color: var(--brand-teal);
+      font-size: .78rem;
+      font-weight: 600;
+      padding: .3rem .75rem;
+      border-radius: 20px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.18;
+      letter-spacing: -.03em;
+      margin-bottom: .9rem;
+    }
+    .hero p {
+      color: rgba(255,255,255,.68);
+      font-size: 1rem;
+      max-width: 520px;
+      line-height: 1.65;
+    }
+    .hero-stat {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 1rem 1.4rem;
+      backdrop-filter: blur(8px);
+    }
+    .hero-stat .value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.03em;
+      line-height: 1.1;
+    }
+    .hero-stat .label {
+      font-size: .72rem;
+      color: rgba(255,255,255,.55);
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-top: .25rem;
+    }
+    .hero-stat .accent { color: var(--brand-teal); }
+
+    /* ── Cards ── */
+    .card {
+      border: none;
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      background: #fff;
+    }
+    .card-header-custom {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: 1.1rem 1.4rem .9rem;
+      border-bottom: 1px solid #f0f4f8;
+    }
+    .card-header-custom .icon-wrap {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+    }
+    .icon-blue  { background: #e8f4fd; color: var(--brand-blue); }
+    .icon-teal  { background: #e8f8f5; color: var(--brand-teal); }
+    .icon-gold  { background: #fef9e7; color: #f39c12; }
+    .icon-purple{ background: #f3e6ff; color: #8e44ad; }
+    .card-header-custom h6 {
+      font-weight: 700;
+      font-size: .9rem;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .card-header-custom small {
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+    .card-body-padded { padding: 1.25rem 1.4rem 1.4rem; }
+
+    /* ── Form ── */
+    .form-label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: .4rem;
+    }
+    .form-select, .form-control {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: .65rem .9rem;
+      font-size: .92rem;
+      color: var(--text-primary);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .form-select:focus, .form-control:focus {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 3px rgba(41,128,185,.12);
+      outline: none;
+    }
+    .btn-predict {
+      background: linear-gradient(135deg, var(--brand-blue) 0%, #1a5e8a 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: .75rem 1.5rem;
+      font-size: .93rem;
+      font-weight: 600;
+      width: 100%;
+      transition: opacity var(--transition), transform var(--transition);
+      letter-spacing: .01em;
+    }
+    .btn-predict:hover  { opacity: .9; transform: translateY(-1px); color: #fff; }
+    .btn-predict:active { transform: translateY(0); }
+    .btn-predict:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── Sample Cards ── */
+    .sample-card {
+      border: 1.5px solid #e8eef5;
+      border-radius: 10px;
+      padding: .85rem 1rem;
+      cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+      background: #fff;
+    }
+    .sample-card:hover {
+      border-color: var(--brand-blue);
+      box-shadow: 0 4px 16px rgba(41,128,185,.14);
+      transform: translateY(-2px);
+    }
+    .sample-card.active {
+      border-color: var(--brand-teal);
+      background: linear-gradient(135deg, #f0fdf9 0%, #e8f8f5 100%);
+    }
+    .sample-state {
+      font-weight: 700;
+      font-size: .88rem;
+      color: var(--text-primary);
+    }
+    .sample-pred {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--brand-blue);
+      letter-spacing: -.02em;
+    }
+    .sample-meta {
+      font-size: .7rem;
+      color: var(--text-muted);
+    }
+    .trend-up   { color: #27ae60; }
+    .trend-down { color: #e74c3c; }
+
+    /* ── Result Card ── */
+    #resultCard { display: none; }
+    .result-value {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--brand-dark);
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+    .result-unit {
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      background: var(--brand-light);
+      color: var(--brand-blue);
+      font-size: .78rem;
+      font-weight: 600;
+      padding: .3rem .75rem;
+      border-radius: 20px;
+      border: 1px solid rgba(41,128,185,.2);
+    }
+    .model-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      background: #e8f8f5;
+      color: #1a7a62;
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .25rem .65rem;
+      border-radius: 20px;
+      border: 1px solid rgba(26,188,156,.25);
+    }
+
+    /* ── Chart ── */
+    #chartCard { display: none; }
+    .chart-wrap { position: relative; height: 270px; }
+
+    /* ── Metrics Table ── */
+    .metrics-table th {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-bottom: 2px solid #f0f4f8;
+      padding: .6rem .9rem;
+    }
+    .metrics-table td {
+      font-size: .88rem;
+      padding: .65rem .9rem;
+      vertical-align: middle;
+      border-color: #f5f8fb;
+    }
+    .metrics-table tbody tr:hover { background: #fafcfe; }
+    .metrics-table .best-row { background: linear-gradient(90deg,#e8f8f5,#fff) !important; }
+    .r2-bar-wrap { display: flex; align-items: center; gap: .6rem; }
+    .r2-bar {
+      height: 6px; border-radius: 4px;
+      background: linear-gradient(90deg, var(--brand-teal), var(--brand-blue));
+      transition: width .6s ease;
+    }
+    .r2-text { font-weight: 700; font-size: .85rem; }
+
+    /* ── Loading Overlay ── */
+    #loadingOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(13,33,55,.45);
+      z-index: 9999;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #loadingOverlay.show { display: flex; }
+    .spinner-ring {
+      width: 52px; height: 52px;
+      border: 4px solid rgba(255,255,255,.2);
+      border-top-color: var(--brand-teal);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 10000; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--brand-dark);
+      color: rgba(255,255,255,.45);
+      font-size: .8rem;
+      padding: 1.4rem 0;
+      margin-top: 3rem;
+    }
+    footer a { color: var(--brand-teal); text-decoration: none; }
+
+    /* ── Utilities ── */
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: .2rem;
+    }
+    .divider { border-color: #edf0f5; margin: 1rem 0; }
+    .animate-in { animation: fadeUp .4s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Loading overlay ───────────────────────────────────── -->
+<div id="loadingOverlay">
+  <div class="text-center">
+    <div class="spinner-ring mx-auto mb-3"></div>
+    <div style="color:#fff;font-size:.9rem;font-weight:600;">Generating forecast…</div>
+  </div>
+</div>
+
+<!-- ── Navbar ────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <i class="bi bi-bar-chart-fill" style="color:var(--brand-teal);font-size:1.2rem;"></i>
+      WasteSight<span>AI</span>
+    </a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span class="badge-version">v2.0 · 2026</span>
+      <span class="nav-link d-none d-md-inline">
+        <i class="bi bi-cpu me-1"></i>{{ best_model }}
+      </span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ──────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container position-relative" style="z-index:1;">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6">
+        <div class="hero-tag">
+          <i class="bi bi-stars"></i> AI-Powered Waste Intelligence
+        </div>
+        <h1>Landfill Waste<br>Forecasting Platform</h1>
+        <p>Predict state-level landfill waste volumes with machine learning models trained on decades of real disposal data.</p>
+      </div>
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-sm-4">
+            <div class="hero-stat">
+              <div class="value accent">{{ "%.4f"|format(best_r2) }}</div>
+              <div class="label">Best R² Score</div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="hero-stat">
+              <div class="value">{{ "{:,}".format(best_rmse) }}</div>
+              <div class="label">RMSE (short tons)</div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="hero-stat">
+              <div class="value">{{ states|length }}</div>
+              <div class="label">States Modelled</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Main Content ───────────────────────────────────────── -->
+<div class="container py-4">
+  <div class="row g-4 align-items-start">
+
+    <!-- LEFT COLUMN ──────────────────────── -->
+    <div class="col-lg-5">
+
+      <!-- Prediction Form -->
+      <div class="card mb-4">
+        <div class="card-header-custom">
+          <div class="icon-wrap icon-blue"><i class="bi bi-graph-up-arrow"></i></div>
+          <div>
+            <h6>Forecast Generator</h6>
+            <small>Select a state and year to generate a prediction</small>
+          </div>
+        </div>
+        <div class="card-body-padded">
+          <div class="mb-3">
+            <label class="form-label">State</label>
+            <select class="form-select" id="stateSelect">
+              <option value="" disabled selected>— Choose a state —</option>
+              {% for s in states %}
+              <option value="{{ s }}">{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Forecast Year</label>
+            <input type="number" class="form-control" id="yearInput"
+                   value="2026" min="1980" max="2035" />
+            <div class="form-text" style="font-size:.73rem;color:var(--text-muted);margin-top:.35rem;">
+              <i class="bi bi-info-circle me-1"></i>Lag features auto-computed from historical data
+            </div>
+          </div>
+          <button class="btn-predict" id="predictBtn" onclick="runPrediction()">
+            <i class="bi bi-lightning-charge-fill me-2"></i>Generate Forecast
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Samples -->
+      <div class="card">
+        <div class="card-header-custom">
+          <div class="icon-wrap icon-teal"><i class="bi bi-bookmark-star"></i></div>
+          <div>
+            <h6>Quick Samples</h6>
+            <small>Top states · 2026 pre-computed · click to load</small>
+          </div>
+        </div>
+        <div class="card-body-padded">
+          <div class="d-flex flex-column gap-2">
+            {% for s in samples %}
+            <div class="sample-card" id="sample-{{ loop.index }}"
+                 onclick="loadSample('{{ s.state }}', {{ s.year }}, {{ loop.index }})">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="sample-state">
+                    {% if s.trend == 'up' %}
+                    <i class="bi bi-arrow-up-right trend-up me-1" style="font-size:.75rem;"></i>
+                    {% elif s.trend == 'down' %}
+                    <i class="bi bi-arrow-down-right trend-down me-1" style="font-size:.75rem;"></i>
+                    {% endif %}
+                    {{ s.state }}
+                  </div>
+                  <div class="sample-meta mt-1">
+                    Last known: {{ "{:,}".format(s.last_known_val) if s.last_known_val else '—' }} tons
+                    ({{ s.last_known_year if s.last_known_year else '—' }})
+                    · {{ s.data_points }} yr dataset
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="sample-pred">{{ "{:,.0f}".format(s.prediction) }}</div>
+                  <div class="sample-meta">tons · 2026</div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /LEFT -->
+
+    <!-- RIGHT COLUMN ─────────────────────── -->
+    <div class="col-lg-7">
+
+      <!-- Result Card -->
+      <div class="card mb-4 animate-in" id="resultCard">
+        <div class="card-header-custom">
+          <div class="icon-wrap icon-teal"><i class="bi bi-check2-circle"></i></div>
+          <div>
+            <h6>Forecast Result</h6>
+            <small id="resultSubtitle">—</small>
+          </div>
+        </div>
+        <div class="card-body-padded">
+          <div class="row align-items-center g-3">
+            <div class="col-sm-7">
+              <div class="result-unit mb-1">Predicted Total Waste Mass</div>
+              <div class="result-value" id="resultValue">—</div>
+              <div class="result-unit mt-1">short tons</div>
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <div class="result-badge">
+                  <i class="bi bi-calendar3"></i>
+                  <span id="resultYear">—</span>
+                </div>
+                <div class="model-pill">
+                  <i class="bi bi-cpu"></i>
+                  <span id="resultModel">—</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-5">
+              <div class="p-3 rounded-3" style="background:var(--brand-light);">
+                <div style="font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Interpretation</div>
+                <div id="interpText" style="font-size:.85rem;color:var(--text-primary);margin-top:.4rem;line-height:1.55;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trend Chart -->
+      <div class="card mb-4 animate-in" id="chartCard">
+        <div class="card-header-custom">
+          <div class="icon-wrap icon-purple"><i class="bi bi-activity"></i></div>
+          <div>
+            <h6>Historical Trend &amp; Forecast</h6>
+            <small id="chartSubtitle">—</small>
+          </div>
+        </div>
+        <div class="card-body-padded">
+          <div class="chart-wrap">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Performance Table -->
+      <div class="card animate-in">
+        <div class="card-header-custom">
+          <div class="icon-wrap icon-gold"><i class="bi bi-trophy"></i></div>
+          <div>
+            <h6>Model Performance Comparison</h6>
+            <small>Evaluated on 20 % held-out test set</small>
+          </div>
+        </div>
+        <div class="card-body-padded p-0">
+          <div class="table-responsive">
+            <table class="table metrics-table mb-0">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>R² Score</th>
+                  <th>RMSE</th>
+                  <th>MAE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in metrics %}
+                <tr class="{{ 'best-row' if m.Model == best_model else '' }}">
+                  <td>
+                    {% if m.Model == best_model %}
+                    <i class="bi bi-trophy-fill me-1" style="color:#f39c12;font-size:.8rem;"></i>
+                    {% endif %}
+                    <strong>{{ m.Model }}</strong>
+                    {% if m.Model == best_model %}
+                    <span class="ms-1" style="font-size:.7rem;background:#e8f8f5;color:#1a7a62;border:1px solid rgba(26,188,156,.2);padding:.1rem .45rem;border-radius:10px;font-weight:600;">BEST</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="r2-bar-wrap">
+                      <div class="r2-bar" style="width:{{ [m.R2 * 80, 0]|max|round }}px;min-width:4px;"></div>
+                      <span class="r2-text" style="color:{{ '#1abc9c' if m.R2 >= 0.8 else ('#f39c12' if m.R2 >= 0.5 else '#e74c3c') }}">
+                        {{ "%.4f"|format(m.R2) }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>{{ "{:,.0f}".format(m.RMSE) }}</td>
+                  <td>{{ "{:,.0f}".format(m.MAE) }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /RIGHT -->
+  </div>
+</div>
+
+<!-- ── Toast container ──────────────────────────────────── -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── Footer ────────────────────────────────────────────── -->
+<footer class="mt-5">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center">
+    <span><i class="bi bi-bar-chart-fill me-2" style="color:var(--brand-teal);"></i>WasteSight AI · 2026</span>
+    <span>Powered by {{ best_model }} &nbsp;·&nbsp; {{ states|length }} states &nbsp;·&nbsp; R² {{ "%.4f"|format(best_r2) }}</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let trendChart = null;
+
+  // ── Sample click ──────────────────────────────────────────
+  function loadSample(state, year, idx) {
+    document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('sample-' + idx).classList.add('active');
+    document.getElementById('stateSelect').value = state;
+    document.getElementById('yearInput').value   = year;
+    runPrediction();
+  }
+
+  // ── Run prediction ────────────────────────────────────────
+  async function runPrediction() {
+    const state = document.getElementById('stateSelect').value;
+    const year  = parseInt(document.getElementById('yearInput').value);
+
+    if (!state) { showToast('Please select a state.', 'warning'); return; }
+    if (isNaN(year) || year < 1980 || year > 2035) {
+      showToast('Year must be between 1980 and 2035.', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('predictBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating…';
+    document.getElementById('loadingOverlay').classList.add('show');
+
+    try {
+      const res  = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state, year })
+      });
+      const data = await res.json();
+
+      if (!res.ok) { showToast(data.error || 'Prediction failed.', 'danger'); return; }
+
+      displayResult(data);
+      renderChart(data);
+    } catch (e) {
+      showToast('Network error — is the server running?', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i>Generate Forecast';
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+  }
+
+  // ── Display result card ───────────────────────────────────
+  function displayResult(data) {
+    const rc = document.getElementById('resultCard');
+    rc.style.display = 'block';
+    rc.classList.remove('animate-in');
+    void rc.offsetWidth;
+    rc.classList.add('animate-in');
+
+    document.getElementById('resultSubtitle').textContent =
+      data.state + ' · ' + data.year + ' forecast';
+    document.getElementById('resultValue').textContent =
+      Number(data.prediction).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    document.getElementById('resultYear').textContent  = data.year;
+    document.getElementById('resultModel').textContent = data.model;
+
+    const hist = data.hist_vals;
+    let interp = '';
+    if (hist.length >= 2) {
+      const last = hist[hist.length - 1];
+      const pct  = ((data.prediction - last) / last * 100);
+      const dir  = pct >= 0 ? 'increase' : 'decrease';
+      const abs  = Math.abs(pct).toFixed(1);
+      interp = 'A <strong>' + abs + '% ' + dir + '</strong> projected vs last recorded year (' +
+               data.hist_years[data.hist_years.length - 1] + ': ' +
+               Number(last).toLocaleString(undefined, {maximumFractionDigits: 0}) + ' tons).';
+    } else {
+      interp = 'Forecast based on available historical data for ' + data.state + '.';
+    }
+    document.getElementById('interpText').innerHTML = interp;
+  }
+
+  // ── Render Chart.js trend chart ───────────────────────────
+  function renderChart(data) {
+    const cc = document.getElementById('chartCard');
+    cc.style.display = 'block';
+    cc.classList.remove('animate-in');
+    void cc.offsetWidth;
+    cc.classList.add('animate-in');
+
+    document.getElementById('chartSubtitle').textContent =
+      data.state + ' · ' + data.hist_years[0] + '–' + data.year;
+
+    const labels = [...data.hist_years, data.year];
+    const vals   = [...data.hist_vals, null];
+    const pred   = new Array(data.hist_vals.length).fill(null);
+    pred.push(data.prediction);
+
+    if (trendChart) { trendChart.destroy(); }
+
+    trendChart = new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Historical (short tons)',
+            data: vals,
+            borderColor: '#2980b9',
+            backgroundColor: 'rgba(41,128,185,.08)',
+            fill: true,
+            tension: .35,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2.5,
+            spanGaps: false,
+          },
+          {
+            label: 'Forecast (short tons)',
+            data: pred,
+            borderColor: '#1abc9c',
+            backgroundColor: 'rgba(26,188,156,.12)',
+            fill: false,
+            tension: 0,
+            pointRadius: 7,
+            pointStyle: 'star',
+            pointHoverRadius: 10,
+            borderWidth: 2.5,
+            borderDash: [6, 4],
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { size: 12, family: 'Inter' }, usePointStyle: true, padding: 14 }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const v = ctx.parsed.y;
+                if (v === null) return null;
+                return ' ' + ctx.dataset.label.split(' ')[0] + ': ' +
+                       Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' tons';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#f0f4f8' },
+            ticks: { font: { size: 11, family: 'Inter' }, color: '#8a9ab0', maxTicksLimit: 12 }
+          },
+          y: {
+            grid: { color: '#f0f4f8' },
+            ticks: {
+              font: { size: 11, family: 'Inter' },
+              color: '#8a9ab0',
+              callback: v => {
+                if (v >= 1e6) return (v/1e6).toFixed(1) + 'M';
+                if (v >= 1e3) return (v/1e3).toFixed(0) + 'K';
+                return v;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ── Toast helper ──────────────────────────────────────────
+  function showToast(msg, type) {
+    const tc  = document.getElementById('toastContainer');
+    const div = document.createElement('div');
+    div.className = 'toast align-items-center text-bg-' + type + ' border-0 show mb-2';
+    div.setAttribute('role', 'alert');
+    div.innerHTML =
+      '<div class="d-flex"><div class="toast-body" style="font-size:.87rem;">' + msg + '</div>' +
+      '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+    tc.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+  }
+
+  // ── Enter key on year field ───────────────────────────────
+  document.getElementById('yearInput')
+    .addEventListener('keydown', e => { if (e.key === 'Enter') runPrediction(); });
+</script>
+</body>
+</html>
